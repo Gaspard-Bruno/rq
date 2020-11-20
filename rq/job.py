@@ -346,7 +346,7 @@ class Job(object):
         self.ttl = None
         self.worker_name = None
         self._status = None
-        self._dependency_ids = []        
+        self._dependency_ids = []
         self.meta = {}
         self.serializer = resolve_serializer(serializer)
         self.retries_left = None
@@ -479,6 +479,8 @@ class Job(object):
             # Fallback to uncompressed string
             self.data = raw_data
 
+        json_origin = True if obj.get('json_origin') else False
+
         self.created_at = str_to_date(obj.get('created_at'))
         self.origin = as_text(obj.get('origin'))
         self.worker_name = obj.get('worker_name').decode() if obj.get('worker_name') else None
@@ -487,6 +489,12 @@ class Job(object):
         self.started_at = str_to_date(obj.get('started_at'))
         self.ended_at = str_to_date(obj.get('ended_at'))
         self.last_heartbeat = str_to_date(obj.get('last_heartbeat'))
+
+        self._func_name = as_text(obj.get('func_name')) if json_origin else self._func_name
+        self._instance = None
+        self._args = ()
+        self._kwargs = {'url': as_text(obj.get('func_url'))} if json_origin else self._kwargs
+
         result = obj.get('result')
         if result:
             try:
@@ -773,7 +781,7 @@ class Job(object):
         from .registry import FailedJobRegistry
         return FailedJobRegistry(self.origin, connection=self.connection,
                                  job_class=self.__class__)
-    
+
     def get_retry_interval(self):
         """Returns the desired retry interval.
         If number of retries is bigger than length of intervals, the first
@@ -860,7 +868,7 @@ class Retry(object):
         super().__init__()
         if max < 1:
             raise ValueError('max: please enter a value greater than 0')
-        
+
         if isinstance(interval, int):
             if interval < 0:
                 raise ValueError('interval: negative numbers are not allowed')
@@ -870,6 +878,6 @@ class Retry(object):
                 if i < 0:
                     raise ValueError('interval: negative numbers are not allowed')
             intervals = interval
-        
+
         self.max = max
         self.intervals = intervals
