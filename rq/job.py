@@ -493,7 +493,13 @@ class Job(object):
         self._func_name = as_text(obj.get('func_name')) if json_origin else self._func_name
         self._instance = None
         self._args = ()
-        self._kwargs = {'url': as_text(obj.get('func_url'))} if json_origin else self._kwargs
+        # self._kwargs = {'url': as_text(obj.get('func_url'))} if json_origin else self._kwargs
+        temp_args = {}
+        if json_origin:
+          for key, value in obj.items():
+            if key.startswith('func_'):
+              temp_args[key.split("func_",1)[1]] = as_text(value)
+          self._kwargs = temp_args
 
         result = obj.get('result')
         if result:
