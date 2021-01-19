@@ -497,7 +497,7 @@ class Job(object):
         temp_args = {}
         if json_origin:
           for key, value in obj.items():
-            if key.startswith('func_'):
+            if key.startswith('func_') and key != 'func_name':
               temp_args[key.split("func_",1)[1]] = as_text(value)
           self._kwargs = temp_args
 
